@@ -15,7 +15,7 @@ Epd epd;
 int _pantallaState = 0;
 int _arrowPosition = 0;
 int _arrowSaldoPosition = 0;
-String operadora,saldo;
+String operadora, saldo;
 void setup() {
   Serial.begin(9600);
   if (epd.Init() != 0) {
