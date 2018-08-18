@@ -1,3 +1,4 @@
+//Alfredo Valdes
 #include <SPI.h>
 #include "epd4in2.h"
 #include "epdpaint.h"
