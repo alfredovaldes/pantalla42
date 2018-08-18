@@ -24,7 +24,8 @@
  */
 
 extern const unsigned char gImage_KELMEK[];
-
+extern const unsigned char gImage_procesando[];
+extern const unsigned char gImage_error[];
 /* FILE END */
 
 

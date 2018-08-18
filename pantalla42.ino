@@ -7,10 +7,15 @@
 #define UNCOLORED   1
 const char* Operador[6] = {"     AT&T", "     TELCEL", "     MOVISTAR", " =>  AT&T", " =>  TELCEL", " =>  MOVISTAR"};
 unsigned char image[1500];
+const char* Saldos[12] = {"     $20", "     $30", "     $50", "     $100", "     $150", "     $200",
+                          " =>  $20", " =>  $30", " =>  $50", " =>  $100", " =>  $150", " =>  $200"
+                         };
 Paint paint(image, 400, 28);
 Epd epd;
 int _pantallaState = 0;
 int _arrowPosition = 0;
+int _arrowSaldoPosition = 0;
+String operadora,saldo;
 void setup() {
   Serial.begin(9600);
   if (epd.Init() != 0) {
@@ -36,12 +41,12 @@ void loop() {
   if (strcmp(line, "") == 0) {
     // Empty line: no command
   }
-  else if (strcmp(line, "Pantalla1") == 0) {
+  else if (strcmp(line, "PantallaKelmek") == 0) {
     epd.ClearFrame();
     epd.DisplayFrame(gImage_KELMEK);
     _pantallaState = 0;
   }
-  else if (strcmp(line, "Pantalla2") == 0) {
+  else if (strcmp(line, "PantallaOperador") == 0) {
     _pantallaState = 2;
     _arrowPosition = 0;
     epd.ClearFrame();
@@ -84,22 +89,121 @@ void loop() {
     Serial.print("Arrow Down, position ");
     Serial.println(_arrowPosition);
   }
-  else if (strcmp(line, "Pantalla3") == 0) {
+  else if (strcmp(line, "PantallaNumero") == 0) {
     _pantallaState = 3;
     epd.ClearFrame();
     pantalla_3();
     epd.DisplayFrame();
   }
   else if ((strcmp(line, "0") > 0) && (_pantallaState == 3)) {
-    String myString;
     String espacios = "       ";
     String cadena = line;
-    myString = espacios + cadena;
-    char bufferChar[80];
-    getValue(myString, ',', 0).toCharArray(bufferChar, 80);
+    operadora = espacios + cadena;
+    char bufferCharOperadora[80];
+    getValue(operadora, ',', 0).toCharArray(bufferCharOperadora, 80);
     _pantallaState = 4;
     epd.ClearFrame();
-    pantalla_4(bufferChar);
+    pantalla_4(bufferCharOperadora);
+    epd.DisplayFrame();
+  }
+  else if (strcmp(line, "PantallaError") == 0) {
+    epd.ClearFrame();
+    epd.DisplayFrame(gImage_error);
+  }
+  else if (strcmp(line, "PantallaProcesando") == 0) {
+    epd.ClearFrame();
+    epd.DisplayFrame(gImage_procesando);
+  }
+  else if (strcmp(line, "PantallaSaldo") == 0) {
+    _pantallaState = 5;
+    _arrowSaldoPosition = 0;
+    epd.ClearFrame();
+    pantalla_5();
+    epd.DisplayFrame();
+  }
+  else if ((strcmp(line, "Up") == 0) && (_arrowSaldoPosition == 0) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 5;
+    pantalla_5();
+    Serial.print("Arrow Up, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Up") == 0) && (_arrowSaldoPosition == 1) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 0;
+    pantalla_5();
+    Serial.print("Arrow Up, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Up") == 0) && (_arrowSaldoPosition == 2) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 1;
+    pantalla_5();
+    Serial.print("Arrow Up, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Up") == 0) && (_arrowSaldoPosition == 3) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 2;
+    pantalla_5();
+    Serial.print("Arrow Up, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Up") == 0) && (_arrowSaldoPosition == 4) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 3;
+    pantalla_5();
+    Serial.print("Arrow Up, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Up") == 0) && (_arrowSaldoPosition == 5) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 4;
+    pantalla_5();
+    Serial.print("Arrow Up, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Down") == 0) && (_arrowSaldoPosition == 0) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 1;
+    pantalla_5();
+    Serial.print("Arrow Down, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Down") == 0) && (_arrowSaldoPosition == 1) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 2;
+    pantalla_5();
+    Serial.print("Arrow Down, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Down") == 0) && (_arrowSaldoPosition == 2) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 3;
+    pantalla_5();
+    Serial.print("Arrow Down, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Down") == 0) && (_arrowSaldoPosition == 3) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 4;
+    pantalla_5();
+    Serial.print("Arrow Down, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Down") == 0) && (_arrowSaldoPosition == 4) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 5;
+    pantalla_5();
+    Serial.print("Arrow Down, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if ((strcmp(line, "Down") == 0) && (_arrowSaldoPosition == 5) && (_pantallaState == 5)) {
+    _arrowSaldoPosition = 0;
+    pantalla_5();
+    Serial.print("Arrow Down, position ");
+    Serial.println(_arrowSaldoPosition);
+  }
+  else if (strcmp(line, "PantallaMostrarSaldo") == 0) {
+    String espacios = "       ";
+    String cadena = line;
+    saldo = espacios + cadena;
+    char bufferCharSaldo[80];
+    getValue(saldo, ',', 0).toCharArray(bufferCharSaldo, 80);
+    char bufferCharOperadora[80];
+    getValue(operadora, ',', 0).toCharArray(bufferCharOperadora, 80);
+    _pantallaState = 6;
+    epd.ClearFrame();
+    pantalla_6(bufferCharOperadora, bufferCharSaldo);
     epd.DisplayFrame();
   }
 }
@@ -194,18 +298,18 @@ void pantalla_3() {
 }
 void pantalla_4(const char* numero) {
   String operadoraSeleccionada;
-  switch(_arrowPosition) {
-  case 0:
-    operadoraSeleccionada = "         AT&T          ";
-    break;
-  case 1:
-    operadoraSeleccionada = "        TELCEL         ";
-    break;
-  case 2:
-    operadoraSeleccionada = "       MOVISTAR        ";
-    break;
-  default:
-    break;
+  switch (_arrowPosition) {
+    case 0:
+      operadoraSeleccionada = "         AT&T          ";
+      break;
+    case 1:
+      operadoraSeleccionada = "        TELCEL         ";
+      break;
+    case 2:
+      operadoraSeleccionada = "       MOVISTAR        ";
+      break;
+    default:
+      break;
   }
   char bufferChar[80];
   getValue(operadoraSeleccionada, ',', 0).toCharArray(bufferChar, 80);
@@ -225,3 +329,121 @@ void pantalla_4(const char* numero) {
   epd.DisplayFrameQuick();
   Serial.print(line);
   }*/
+
+
+void pantalla_5() {
+  sendTextToScreen("  Seleccione el Monto:", 0, 0, COLORED, paint, epd, Font24);
+  switch (_arrowSaldoPosition) {
+    case 0:
+      sendTextToScreen(Saldos[6], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 1:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[7], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 2:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[8], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 3:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[9], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 4:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[10], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 5:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[11], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    default:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+  }
+  sendTextToScreen("    Presione  Enter    ", 0, 210, COLORED, paint, epd, Font24);
+  sendTextToScreen("    Para  continuar    ", 0, 240, COLORED, paint, epd, Font24);
+  epd.DisplayFrameQuick();
+}
+
+void pantalla_6(const char* numero, const char* saldo) {
+  String operadoraSeleccionada;
+  String saldoSeleccionado;
+  switch (_arrowPosition) {
+    case 0:
+      operadoraSeleccionada = "         AT&T          ";
+      break;
+    case 1:
+      operadoraSeleccionada = "        TELCEL         ";
+      break;
+    case 2:
+      operadoraSeleccionada = "       MOVISTAR        ";
+      break;
+    default:
+      break;
+  }
+  switch (_arrowSaldoPosition) {
+    case 0:
+      saldoSeleccionado = "         $ 20          ";
+      break;
+    case 1:
+      saldoSeleccionado = "         $ 30          ";
+      break;
+    case 2:
+      saldoSeleccionado = "         $ 50          ";
+      break;
+    case 3:
+      saldoSeleccionado = "        $  100         ";
+      break;
+    case 4:
+      saldoSeleccionado = "        $  150         ";
+      break;
+    case 5:
+      saldoSeleccionado = "        $  200         ";
+      break;
+    default:
+      break;
+  }
+  char bufferCharOperadora[80];
+  char bufferCharSaldo[80];
+  getValue(operadoraSeleccionada, ',', 0).toCharArray(bufferCharOperadora, 80);
+  getValue(saldoSeleccionado, ',', 0).toCharArray(bufferCharSaldo, 80);
+  sendTextToScreen("       Su numero       ", 0, 0, COLORED, paint, epd, Font24);
+  sendTextToScreen(numero, 0, 30, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("      Su operador      ", 0, 60, COLORED, paint, epd, Font24);
+  sendTextToScreen(bufferCharOperadora, 0, 90, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("       Su  Monto       ", 0, 120, COLORED, paint, epd, Font24);
+  sendTextToScreen(bufferCharSaldo, 0, 150, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("   Enter : Continuar   ", 0, 200, COLORED, paint, epd, Font24);
+  sendTextToScreen("   Cancel : Regresar   ", 0, 250, COLORED, paint, epd, Font24);
+}
