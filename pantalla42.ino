@@ -51,7 +51,7 @@ void loop() {
     _arrowPosition = 0;
     epd.ClearFrame();
     pantalla_2();
-    epd.DisplayFrame();
+    epd.DisplayFrameQuick();
   }
   else if ((strcmp(line, "Up") == 0) && (_arrowPosition == 0) && (_pantallaState == 2)) {
     _arrowPosition = 2;
@@ -93,18 +93,38 @@ void loop() {
     _pantallaState = 3;
     epd.ClearFrame();
     pantalla_3();
-    epd.DisplayFrame();
+    epd.DisplayFrameQuick();
   }
-  else if ((strcmp(line, "0") > 0) && (_pantallaState == 3)) {
-    String espacios = "       ";
-    String cadena = line;
-    operadora = espacios + cadena;
-    char bufferCharOperadora[80];
-    getValue(operadora, ',', 0).toCharArray(bufferCharOperadora, 80);
-    _pantallaState = 4;
-    epd.ClearFrame();
-    pantalla_4(bufferCharOperadora);
-    epd.DisplayFrame();
+  else if ((strcmp(line, "0") >= 0) && (_pantallaState == 3)) {
+    if (strcmp(line, "OK") == 0) {
+      Serial.println("aqui estoy mamando gacho");
+      _pantallaState = 4;
+    }
+    else {
+      String espacios = "       ";
+      String cadena = line;
+      operadora = espacios + cadena;
+      char bufferCharOperadora[80];
+      getValue(operadora, ',', 0).toCharArray(bufferCharOperadora, 80);
+      epd.ClearFrame();
+      pantalla_4(bufferCharOperadora);
+      epd.DisplayFrameQuick();
+    }
+    /*
+      if (getValue(operadora, ',', 1) == "NOTOK") {
+      getValue(operadora, ',', 0).toCharArray(bufferCharOperadora, 80);
+      //_pantallaState = 4;
+      epd.ClearFrame();
+      pantalla_4(bufferCharOperadora);
+      epd.DisplayFrameQuick();
+      }
+      else if (getValue(operadora, ',', 1) == "OK") {
+      getValue(operadora, ',', 0).toCharArray(bufferCharOperadora, 80);
+      _pantallaState = 4;
+      epd.ClearFrame();
+      pantalla_4(bufferCharOperadora);
+      epd.DisplayFrameQuick();
+      }*/
   }
   else if (strcmp(line, "PantallaError") == 0) {
     epd.ClearFrame();
@@ -119,7 +139,7 @@ void loop() {
     _arrowSaldoPosition = 0;
     epd.ClearFrame();
     pantalla_5();
-    epd.DisplayFrame();
+    epd.DisplayFrameQuick();
   }
   else if ((strcmp(line, "Up") == 0) && (_arrowSaldoPosition == 0) && (_pantallaState == 5)) {
     _arrowSaldoPosition = 5;
@@ -204,7 +224,7 @@ void loop() {
     _pantallaState = 6;
     epd.ClearFrame();
     pantalla_6(bufferCharOperadora, bufferCharSaldo);
-    epd.DisplayFrame();
+    epd.DisplayFrameQuick();
   }
 }
 
@@ -320,17 +340,6 @@ void pantalla_4(const char* numero) {
   sendTextToScreen("   Enter : Continuar   ", 0, 200, COLORED, paint, epd, Font24);
   sendTextToScreen("   Cancel : Regresar   ", 0, 250, COLORED, paint, epd, Font24);
 }
-/*else {
-  String myString;
-  myString=line;
-  char bufferChar[80];
-  getValue(myString, ',',0).toCharArray(bufferChar,80);
-  sendTextToScreen(bufferChar,getValue(myString, ',',1).toInt(),getValue(myString, ',',2).toInt(), COLORED, paint, epd, Font16);
-  epd.DisplayFrameQuick();
-  Serial.print(line);
-  }*/
-
-
 void pantalla_5() {
   sendTextToScreen("  Seleccione el Monto:", 0, 0, COLORED, paint, epd, Font24);
   switch (_arrowSaldoPosition) {
