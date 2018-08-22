@@ -249,274 +249,284 @@ void loop() {
   }
 }
 
-  String getValue(String data, char separator, int index)
-  {
-    int found = 0;
-    int strIndex[] = {0, -1};
-    int maxIndex = data.length() - 1;
+String getValue(String data, char separator, int index)
+{
+  int found = 0;
+  int strIndex[] = {0, -1};
+  int maxIndex = data.length() - 1;
 
-    for (int i = 0; i <= maxIndex && found <= index; i++) {
-      if (data.charAt(i) == separator || i == maxIndex) {
-        found++;
-        strIndex[0] = strIndex[1] + 1;
-        strIndex[1] = (i == maxIndex) ? i + 1 : i;
-      }
+  for (int i = 0; i <= maxIndex && found <= index; i++) {
+    if (data.charAt(i) == separator || i == maxIndex) {
+      found++;
+      strIndex[0] = strIndex[1] + 1;
+      strIndex[1] = (i == maxIndex) ? i + 1 : i;
+    }
+  }
+
+  return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+void sendTextToScreen(const char* text, int x, int y, int color, Paint paint, Epd epd, sFONT font) {
+  paint.Clear(!color);
+  paint.DrawStringAt(0, 0, text, &font, color);
+  epd.SetPartialWindow(paint.GetImage(), x, y, paint.GetWidth(), paint.GetHeight());
+}
+
+int read_line(char* buffer, int bufsize)
+{
+  for (int index = 0; index < bufsize; index++) {
+    // Espera a que tengamos actividad en el puerto serial
+    while (Serial.available() == 0) {
     }
 
-    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
-  }
+    char ch = Serial.read(); // lee el siguiente caracter
+    Serial.print(ch); // hazle eco, es opcional
 
-  void sendTextToScreen(const char* text, int x, int y, int color, Paint paint, Epd epd, sFONT font) {
-    paint.Clear(!color);
-    paint.DrawStringAt(0, 0, text, &font, color);
-    epd.SetPartialWindow(paint.GetImage(), x, y, paint.GetWidth(), paint.GetHeight());
-  }
-
-  int read_line(char* buffer, int bufsize)
-  {
-    for (int index = 0; index < bufsize; index++) {
-      // Espera a que tengamos actividad en el puerto serial
-      while (Serial.available() == 0) {
-      }
-
-      char ch = Serial.read(); // lee el siguiente caracter
-      Serial.print(ch); // hazle eco, es opcional
-
-      if (ch == '\n') {
-        buffer[index] = 0; // llegamos al final de la cadena
-        return index; // regresamos la longitud de la cadena
-      }
-
-      buffer[index] = ch; // agrega el caracter al buffer
+    if (ch == '\n') {
+      buffer[index] = 0; // llegamos al final de la cadena
+      return index; // regresamos la longitud de la cadena
     }
-    char ch;
-    do {
-      // espera a que tengamos actividad en el puerto serial
-      while (Serial.available() == 0) {
-      }
-      ch = Serial.read(); // lee y descarta el caracter
-      Serial.print(ch); // hazle eco
-    } while (ch != '\n');
 
-    buffer[0] = 0; // vacia el buffer
-    return -1; // indicamos que la cadena de input fue muy larga
+    buffer[index] = ch; // agrega el caracter al buffer
   }
+  char ch;
+  do {
+    // espera a que tengamos actividad en el puerto serial
+    while (Serial.available() == 0) {
+    }
+    ch = Serial.read(); // lee y descarta el caracter
+    Serial.print(ch); // hazle eco
+  } while (ch != '\n');
 
-  void pantalla_2() {
-    sendTextToScreen("Seleccione su operador:", 0, 0, COLORED, paint, epd, Font24);
-    switch (_arrowPosition) {
-      case 0:
-        sendTextToScreen(Operador[3], 50, 70, COLORED, paint, epd, Font24);
-        sendTextToScreen(Operador[1], 50, 100, COLORED, paint, epd, Font24);
-        sendTextToScreen(Operador[2], 50, 130, COLORED, paint, epd, Font24);
-        break;
-      case 1:
-        sendTextToScreen(Operador[0], 50, 70, COLORED, paint, epd, Font24);
-        sendTextToScreen(Operador[4], 50, 100, COLORED, paint, epd, Font24);
-        sendTextToScreen(Operador[2], 50, 130, COLORED, paint, epd, Font24);
-        break;
-      case 2:
-        sendTextToScreen(Operador[0], 50, 70, COLORED, paint, epd, Font24);
-        sendTextToScreen(Operador[1], 50, 100, COLORED, paint, epd, Font24);
-        sendTextToScreen(Operador[5], 50, 130, COLORED, paint, epd, Font24);
-        break;
-      default:
-        sendTextToScreen(Operador[0], 50, 70, COLORED, paint, epd, Font24);
-        sendTextToScreen(Operador[1], 50, 100, COLORED, paint, epd, Font24);
-        sendTextToScreen(Operador[2], 50, 130, COLORED, paint, epd, Font24);
-        break;
-    }
-    sendTextToScreen("    Presione  Enter    ", 0, 210, COLORED, paint, epd, Font24);
-    sendTextToScreen("    Para  continuar    ", 0, 240, COLORED, paint, epd, Font24);
-    epd.DisplayFrameQuick();
-  }
-  void pantalla_3() {
-    sendTextToScreen(Operador[_arrowPosition], 80, 0, COLORED, paint, epd, Font24);
-    sendTextToScreen("   Ingrese su numero   ", 0, 120, COLORED, paint, epd, Font24);
-    sendTextToScreen("   y presione  Enter   ", 0, 150, COLORED, paint, epd, Font24);
-    /*if (strcmp(numero) > 0) {
-      }*/
-  }
-  void pantalla_4(const char* numero) {
-    String operadoraSeleccionada;
-    switch (_arrowPosition) {
-      case 0:
-        operadoraSeleccionada = "         AT&T          ";
-        break;
-      case 1:
-        operadoraSeleccionada = "        TELCEL         ";
-        break;
-      case 2:
-        operadoraSeleccionada = "       MOVISTAR        ";
-        break;
-      default:
-        break;
-    }
-    char bufferChar[80];
-    getValue(operadoraSeleccionada, ',', 0).toCharArray(bufferChar, 80);
-    sendTextToScreen("       Su numero       ", 0, 0, COLORED, paint, epd, Font24);
-    sendTextToScreen(numero, 0, 50, UNCOLORED, paint, epd, Font24);
-    sendTextToScreen("      Su operador      ", 0, 100, COLORED, paint, epd, Font24);
-    sendTextToScreen(bufferChar, 0, 150, UNCOLORED, paint, epd, Font24);
-    sendTextToScreen("   Enter : Continuar   ", 0, 200, COLORED, paint, epd, Font24);
-    sendTextToScreen("   Cancel : Regresar   ", 0, 250, COLORED, paint, epd, Font24);
-  }
-  void pantalla_5() {
-    sendTextToScreen("  Seleccione el Monto:", 0, 0, COLORED, paint, epd, Font24);
-    switch (_arrowSaldoPosition) {
-      case 0:
-        sendTextToScreen(Saldos[6], 50, 50, COLORED, paint, epd, Font24);//20
-        sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
-        sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
-        sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
-        sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
-        sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
-        break;
-      case 1:
-        sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
-        sendTextToScreen(Saldos[7], 50, 70, COLORED, paint, epd, Font24);//30
-        sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
-        sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
-        sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
-        sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
-        break;
-      case 2:
-        sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
-        sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
-        sendTextToScreen(Saldos[8], 50, 90, COLORED, paint, epd, Font24);//50
-        sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
-        sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
-        sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
-        break;
-      case 3:
-        sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
-        sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
-        sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
-        sendTextToScreen(Saldos[9], 50, 110, COLORED, paint, epd, Font24);//100
-        sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
-        sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
-        break;
-      case 4:
-        sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
-        sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
-        sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
-        sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
-        sendTextToScreen(Saldos[10], 50, 130, COLORED, paint, epd, Font24);//150
-        sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
-        break;
-      case 5:
-        sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
-        sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
-        sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
-        sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
-        sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
-        sendTextToScreen(Saldos[11], 50, 150, COLORED, paint, epd, Font24);//200
-        break;
-      default:
-        sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
-        sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
-        sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
-        sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
-        sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
-        sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
-        break;
-    }
-    sendTextToScreen("    Presione  Enter    ", 0, 210, COLORED, paint, epd, Font24);
-    sendTextToScreen("    Para  continuar    ", 0, 240, COLORED, paint, epd, Font24);
-    epd.DisplayFrameQuick();
-  }
+  buffer[0] = 0; // vacia el buffer
+  return -1; // indicamos que la cadena de input fue muy larga
+}
 
-  void pantalla_6(const char* numero, const char* saldo) {
-    String operadoraSeleccionada;
-    String saldoSeleccionado;
-    switch (_arrowPosition) {
-      case 0:
-        operadoraSeleccionada = "         AT&T          ";
-        break;
-      case 1:
-        operadoraSeleccionada = "        TELCEL         ";
-        break;
-      case 2:
-        operadoraSeleccionada = "       MOVISTAR        ";
-        break;
-      default:
-        break;
-    }
-    switch (_arrowSaldoPosition) {
-      case 0:
-        saldoSeleccionado = "         $ 20          ";
-        break;
-      case 1:
-        saldoSeleccionado = "         $ 30          ";
-        break;
-      case 2:
-        saldoSeleccionado = "         $ 50          ";
-        break;
-      case 3:
-        saldoSeleccionado = "        $  100         ";
-        break;
-      case 4:
-        saldoSeleccionado = "        $  150         ";
-        break;
-      case 5:
-        saldoSeleccionado = "        $  200         ";
-        break;
-      default:
-        break;
-    }
-    char bufferCharOperadora[80];
-    char bufferCharSaldo[80];
-    getValue(operadoraSeleccionada, ',', 0).toCharArray(bufferCharOperadora, 80);
-    getValue(saldoSeleccionado, ',', 0).toCharArray(bufferCharSaldo, 80);
-    sendTextToScreen("       Su numero       ", 0, 0, COLORED, paint, epd, Font24);
-    sendTextToScreen(numero, 0, 30, UNCOLORED, paint, epd, Font24);
-    sendTextToScreen("      Su operador      ", 0, 60, COLORED, paint, epd, Font24);
-    sendTextToScreen(bufferCharOperadora, 0, 90, UNCOLORED, paint, epd, Font24);
-    sendTextToScreen("       Su  Monto       ", 0, 120, COLORED, paint, epd, Font24);
-    sendTextToScreen(bufferCharSaldo, 0, 150, UNCOLORED, paint, epd, Font24);
-    sendTextToScreen("   Enter : Continuar   ", 0, 200, COLORED, paint, epd, Font24);
-    sendTextToScreen("   Cancel : Regresar   ", 0, 250, COLORED, paint, epd, Font24);
+void pantalla_2() {
+  sendTextToScreen("Seleccione su operador:", 0, 0, COLORED, paint, epd, Font24);
+  switch (_arrowPosition) {
+    case 0:
+      sendTextToScreen(Operador[3], 50, 70, COLORED, paint, epd, Font24);
+      sendTextToScreen(Operador[1], 50, 100, COLORED, paint, epd, Font24);
+      sendTextToScreen(Operador[2], 50, 130, COLORED, paint, epd, Font24);
+      break;
+    case 1:
+      sendTextToScreen(Operador[0], 50, 70, COLORED, paint, epd, Font24);
+      sendTextToScreen(Operador[4], 50, 100, COLORED, paint, epd, Font24);
+      sendTextToScreen(Operador[2], 50, 130, COLORED, paint, epd, Font24);
+      break;
+    case 2:
+      sendTextToScreen(Operador[0], 50, 70, COLORED, paint, epd, Font24);
+      sendTextToScreen(Operador[1], 50, 100, COLORED, paint, epd, Font24);
+      sendTextToScreen(Operador[5], 50, 130, COLORED, paint, epd, Font24);
+      break;
+    default:
+      sendTextToScreen(Operador[0], 50, 70, COLORED, paint, epd, Font24);
+      sendTextToScreen(Operador[1], 50, 100, COLORED, paint, epd, Font24);
+      sendTextToScreen(Operador[2], 50, 130, COLORED, paint, epd, Font24);
+      break;
   }
-  void pantalla_7() {
-    sendTextToScreen(Saldos[_arrowSaldoPosition], 80, 0, COLORED, paint, epd, Font24);
-    sendTextToScreen("   Por Favor inserte   ", 0, 120, COLORED, paint, epd, Font24);
-    sendTextToScreen("    el monto exacto.   ", 0, 150, COLORED, paint, epd, Font24);
-    sendTextToScreen("     La maquina no     ", 0, 180, COLORED, paint, epd, Font24);
-    sendTextToScreen("    regresa  cambio    ", 0, 210, COLORED, paint, epd, Font24);
-    /*if (strcmp(numero) > 0) {
-      }*/
+  sendTextToScreen("LA MAQUINA NO REGRESA CAMBIO", 0, 200, COLORED, paint, epd, Font20);
+  sendTextToScreen(" ASEGURE EL  IMPORTE EXACTO ", 0, 220, COLORED, paint, epd, Font20);
+  sendTextToScreen("    Presione  Enter    ", 0, 250, COLORED, paint, epd, Font24);
+  sendTextToScreen("    Para  continuar    ", 0, 280, COLORED, paint, epd, Font24);
+  epd.DisplayFrameQuick();
+}
+void pantalla_3() {
+  sendTextToScreen(Operador[_arrowPosition], 80, 0, COLORED, paint, epd, Font24);
+  sendTextToScreen("   Ingrese su numero   ", 0, 120, COLORED, paint, epd, Font24);
+  sendTextToScreen("   y presione  Enter   ", 0, 150, COLORED, paint, epd, Font24);
+  sendTextToScreen("LA MAQUINA NO REGRESA CAMBIO", 0, 200, COLORED, paint, epd, Font20);
+  sendTextToScreen(" ASEGURE EL  IMPORTE EXACTO ", 0, 220, COLORED, paint, epd, Font20);
+}
+void pantalla_4(const char* numero) {
+  String operadoraSeleccionada;
+  switch (_arrowPosition) {
+    case 0:
+      operadoraSeleccionada = "         AT&T          ";
+      break;
+    case 1:
+      operadoraSeleccionada = "        TELCEL         ";
+      break;
+    case 2:
+      operadoraSeleccionada = "       MOVISTAR        ";
+      break;
+    default:
+      break;
   }
-  void pantalla_8(const char* numero) {
-    String operadoraSeleccionada;
-    String saldoSeleccionado;
-    switch (_arrowSaldoPosition) {
-      case 0:
-        saldoSeleccionado = "         $ 20          ";
-        break;
-      case 1:
-        saldoSeleccionado = "         $ 30          ";
-        break;
-      case 2:
-        saldoSeleccionado = "         $ 50          ";
-        break;
-      case 3:
-        saldoSeleccionado = "        $  100         ";
-        break;
-      case 4:
-        saldoSeleccionado = "        $  150         ";
-        break;
-      case 5:
-        saldoSeleccionado = "        $  200         ";
-        break;
-      default:
-        break;
-    }
-    char bufferChar[80];
-    getValue(saldoSeleccionado, ',', 0).toCharArray(bufferChar, 80);
-    sendTextToScreen("   Monto Seleccionado  ", 0, 0, COLORED, paint, epd, Font24);
-    sendTextToScreen(bufferChar, 0, 50, UNCOLORED, paint, epd, Font24);
-    sendTextToScreen("    Monto  Insertado   ", 0, 100, COLORED, paint, epd, Font24);
-    sendTextToScreen(numero, 0, 150, UNCOLORED, paint, epd, Font24);
-    sendTextToScreen("   Enter : Continuar   ", 0, 200, COLORED, paint, epd, Font24);
-    sendTextToScreen("   Cancel : Regresar   ", 0, 250, COLORED, paint, epd, Font24);
+  char bufferChar[80];
+  getValue(operadoraSeleccionada, ',', 0).toCharArray(bufferChar, 80);
+  sendTextToScreen("       Su numero       ", 0, 0, COLORED, paint, epd, Font24);
+  sendTextToScreen(numero, 0, 50, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("      Su operador      ", 0, 100, COLORED, paint, epd, Font24);
+  sendTextToScreen(bufferChar, 0, 150, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("LA MAQUINA NO REGRESA CAMBIO", 0, 200, COLORED, paint, epd, Font20);
+  sendTextToScreen(" ASEGURE EL  IMPORTE EXACTO ", 0, 220, COLORED, paint, epd, Font20);
+  sendTextToScreen("   Enter : Continuar   ", 0, 250, COLORED, paint, epd, Font24);
+  sendTextToScreen("   Cancel : Regresar   ", 0, 280, COLORED, paint, epd, Font24);
+}
+void pantalla_5() {
+  sendTextToScreen("  Seleccione el Monto:", 0, 0, COLORED, paint, epd, Font24);
+  switch (_arrowSaldoPosition) {
+    case 0:
+      sendTextToScreen(Saldos[6], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 1:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[7], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 2:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[8], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 3:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[9], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 4:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[10], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    case 5:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[11], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
+    default:
+      sendTextToScreen(Saldos[0], 50, 50, COLORED, paint, epd, Font24);//20
+      sendTextToScreen(Saldos[1], 50, 70, COLORED, paint, epd, Font24);//30
+      sendTextToScreen(Saldos[2], 50, 90, COLORED, paint, epd, Font24);//50
+      sendTextToScreen(Saldos[3], 50, 110, COLORED, paint, epd, Font24);//100
+      sendTextToScreen(Saldos[4], 50, 130, COLORED, paint, epd, Font24);//150
+      sendTextToScreen(Saldos[5], 50, 150, COLORED, paint, epd, Font24);//200
+      break;
   }
+  sendTextToScreen("LA MAQUINA NO REGRESA CAMBIO", 0, 200, COLORED, paint, epd, Font20);
+  sendTextToScreen(" ASEGURE EL  IMPORTE EXACTO ", 0, 220, COLORED, paint, epd, Font20);
+  sendTextToScreen("    Presione  Enter    ", 0, 250, COLORED, paint, epd, Font24);
+  sendTextToScreen("    Para  continuar    ", 0, 280, COLORED, paint, epd, Font24);
+  epd.DisplayFrameQuick();
+}
+
+void pantalla_6(const char* numero, const char* saldo) {
+  String operadoraSeleccionada;
+  String saldoSeleccionado;
+  switch (_arrowPosition) {
+    case 0:
+      operadoraSeleccionada = "         AT&T          ";
+      break;
+    case 1:
+      operadoraSeleccionada = "        TELCEL         ";
+      break;
+    case 2:
+      operadoraSeleccionada = "       MOVISTAR        ";
+      break;
+    default:
+      break;
+  }
+  switch (_arrowSaldoPosition) {
+    case 0:
+      saldoSeleccionado = "         $ 20          ";
+      break;
+    case 1:
+      saldoSeleccionado = "         $ 30          ";
+      break;
+    case 2:
+      saldoSeleccionado = "         $ 50          ";
+      break;
+    case 3:
+      saldoSeleccionado = "        $  100         ";
+      break;
+    case 4:
+      saldoSeleccionado = "        $  150         ";
+      break;
+    case 5:
+      saldoSeleccionado = "        $  200         ";
+      break;
+    default:
+      break;
+  }
+  char bufferCharOperadora[80];
+  char bufferCharSaldo[80];
+  getValue(operadoraSeleccionada, ',', 0).toCharArray(bufferCharOperadora, 80);
+  getValue(saldoSeleccionado, ',', 0).toCharArray(bufferCharSaldo, 80);
+  sendTextToScreen("       Su numero       ", 0, 0, COLORED, paint, epd, Font24);
+  sendTextToScreen(numero, 0, 30, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("      Su operador      ", 0, 60, COLORED, paint, epd, Font24);
+  sendTextToScreen(bufferCharOperadora, 0, 90, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("       Su  Monto       ", 0, 120, COLORED, paint, epd, Font24);
+  sendTextToScreen(bufferCharSaldo, 0, 150, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("LA MAQUINA NO REGRESA CAMBIO", 0, 200, COLORED, paint, epd, Font20);
+  sendTextToScreen(" ASEGURE EL  IMPORTE EXACTO ", 0, 220, COLORED, paint, epd, Font20);
+  sendTextToScreen("   Enter : Continuar   ", 0, 250, COLORED, paint, epd, Font24);
+  sendTextToScreen("   Cancel : Regresar   ", 0, 280, COLORED, paint, epd, Font24);
+}
+void pantalla_7() {
+  sendTextToScreen(Saldos[_arrowSaldoPosition], 80, 0, COLORED, paint, epd, Font24);
+  sendTextToScreen("   Por Favor inserte   ", 0, 120, COLORED, paint, epd, Font24);
+  sendTextToScreen("    el monto exacto.   ", 0, 150, COLORED, paint, epd, Font24);
+  sendTextToScreen("     La maquina no     ", 0, 180, COLORED, paint, epd, Font24);
+  sendTextToScreen("    regresa  cambio    ", 0, 210, COLORED, paint, epd, Font24);
+  /*if (strcmp(numero) > 0) {
+    }*/
+}
+void pantalla_8(const char* numero) {
+  String operadoraSeleccionada;
+  String saldoSeleccionado;
+  switch (_arrowSaldoPosition) {
+    case 0:
+      saldoSeleccionado = "         $ 20          ";
+      break;
+    case 1:
+      saldoSeleccionado = "         $ 30          ";
+      break;
+    case 2:
+      saldoSeleccionado = "         $ 50          ";
+      break;
+    case 3:
+      saldoSeleccionado = "        $  100         ";
+      break;
+    case 4:
+      saldoSeleccionado = "        $  150         ";
+      break;
+    case 5:
+      saldoSeleccionado = "        $  200         ";
+      break;
+    default:
+      break;
+  }
+  char bufferChar[80];
+  getValue(saldoSeleccionado, ',', 0).toCharArray(bufferChar, 80);
+  sendTextToScreen("   Monto Seleccionado  ", 0, 0, COLORED, paint, epd, Font24);
+  sendTextToScreen(bufferChar, 0, 50, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("    Monto  Insertado   ", 0, 100, COLORED, paint, epd, Font24);
+  sendTextToScreen(numero, 0, 150, UNCOLORED, paint, epd, Font24);
+  sendTextToScreen("LA MAQUINA NO REGRESA CAMBIO", 0, 200, COLORED, paint, epd, Font20);
+  sendTextToScreen(" ASEGURE EL  IMPORTE EXACTO ", 0, 220, COLORED, paint, epd, Font20);
+  sendTextToScreen("   Enter : Continuar   ", 0, 250, COLORED, paint, epd, Font24);
+  sendTextToScreen("   Cancel : Regresar   ", 0, 280, COLORED, paint, epd, Font24);
+}
